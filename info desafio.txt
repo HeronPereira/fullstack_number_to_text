@@ -1,0 +1,296 @@
+Info sobre os métodos utilizados
+
+🔹 1️⃣ socket
+Criação de um novo socket (ponto final de comunicação).
+
+🔸 Assinatura:
+
+c++
+Copiar
+Editar
+int socket(int domain, int type, int protocol);
+🔸 Argumentos:
+
+domain: Especifica a família de endereços (ex: AF_INET para IPv4).
+
+type: Tipo de socket (ex: SOCK_STREAM para TCP, SOCK_DGRAM para UDP).
+
+protocol: Protocolo específico (0 para padrão do type escolhido).
+
+🔸 Retorno:
+
+Um inteiro (descritor de socket, tipo "ID do ponto de comunicação").
+
+Retorna -1 se falhar (ex: erro na criação do socket).
+
+🔸 O que faz:
+Configura um socket novo (sem conexão ainda), que servirá como "telefone" para enviar/receber dados.
+
+🔹 2️⃣ bind
+Associa um socket a um endereço (IP e porta).
+
+🔸 Assinatura:
+
+c++
+Copiar
+Editar
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+🔸 Argumentos:
+
+sockfd: O socket (descritor) criado pelo socket().
+
+addr: Estrutura sockaddr contendo o IP e a porta a associar.
+
+addrlen: Tamanho da estrutura addr.
+
+🔸 Retorno:
+
+0 se deu certo, -1 se falhou.
+
+🔸 O que faz:
+"Reserva" o endereço e a porta especificados para aquele socket, como se dissesse "quero atender na porta 8080".
+
+🔹 3️⃣ listen
+Coloca o socket no modo "escuta" (aguardando conexões).
+
+🔸 Assinatura:
+
+c++
+Copiar
+Editar
+int listen(int sockfd, int backlog);
+🔸 Argumentos:
+
+sockfd: O socket que foi associado com bind().
+
+backlog: Quantas conexões simultâneas podem ficar na fila de espera.
+
+🔸 Retorno:
+
+0 se deu certo, -1 se falhou.
+
+🔸 O que faz:
+Diz ao sistema: "Agora estou pronto para aceitar conexões neste socket".
+
+🔹 4️⃣ accept
+Aceita uma conexão de um cliente e cria um novo socket para ela.
+
+🔸 Assinatura:
+
+c++
+Copiar
+Editar
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+🔸 Argumentos:
+
+sockfd: O socket em modo escuta (listen).
+
+addr: (opcional) Preenche com o endereço do cliente conectado.
+
+addrlen: (opcional) Tamanho da estrutura addr.
+
+🔸 Retorno:
+
+Um novo socket para se comunicar com aquele cliente específico.
+
+Retorna -1 se falhou.
+
+🔸 O que faz:
+Aceita uma conexão e cria um "canal exclusivo" para aquele cliente.
+
+🔹 5️⃣ select
+Espera por eventos (ex: dados prontos para leitura) em múltiplos sockets.
+
+🔸 Assinatura:
+
+c++
+Copiar
+Editar
+int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+🔸 Argumentos:
+
+nfds: Maior número de descritor + 1 (limite do que observar).
+
+readfds: Conjunto de descritores a observar para leitura.
+
+writefds: Conjunto para escrita (não usamos normalmente).
+
+exceptfds: Conjunto para exceções (não usamos normalmente).
+
+timeout: Quanto tempo esperar (pode ser NULL para esperar indefinidamente).
+
+🔸 Retorno:
+
+Número de descritores "prontos", 0 se timeout, -1 se erro.
+
+🔸 O que faz:
+Verifica quem está pronto (quem tocou a campainha), podendo monitorar vários sockets ao mesmo tempo.
+
+🔹 6️⃣ read
+Lê dados de um socket (ou outro descritor de arquivo).
+
+🔸 Assinatura:
+
+c++
+Copiar
+Editar
+ssize_t read(int fd, void *buf, size_t count);
+🔸 Argumentos:
+
+fd: Descritor de onde ler (socket do cliente, por exemplo).
+
+buf: Buffer onde os dados lidos serão armazenados.
+
+count: Quantos bytes tentar ler.
+
+🔸 Retorno:
+
+Número de bytes lidos, 0 se conexão fechada, -1 se erro.
+
+🔸 O que faz:
+Lê dados enviados pelo cliente para o servidor (ou vice-versa).
+
+🔹 7️⃣ FD_ISSET
+Verifica se um descritor está "pronto" no conjunto do select().
+
+🔸 Assinatura:
+
+c++
+Copiar
+Editar
+int FD_ISSET(int fd, fd_set *set);
+🔸 Argumentos:
+
+fd: Descritor de socket.
+
+set: Conjunto fd_set configurado no select().
+
+🔸 Retorno:
+
+Não zero se fd está pronto.
+
+Zero se não está pronto.
+
+🔸 O que faz:
+Diz: "O cliente X mandou algo ou ficou pronto?".
+
+
+# Central System Server (Desafio Técnico)
+
+Este projeto implementa um **servidor TCP** (POSIX) em C++ capaz de receber conexões simultâneas de sensores, registrar os dados recebidos e gerenciar as conexões com eficiência e segurança.
+
+## Funcionalidades
+- Aceita conexões TCP de múltiplos clientes (sensores) na porta **4000**.
+- Recebe mensagens no formato JSON e grava em um arquivo **SensorData.log** com o formato:
+<ip>:<mensagem>
+
+markdown
+Copiar
+Editar
+- Gerencia conexões simultâneas usando **multithreading** (`std::thread`).
+- Encerra conexões de clientes inativos após **60 segundos**.
+- Permite finalização limpa (Ctrl+C) usando tratamento de sinais (`SIGINT`).
+
+##  Construção
+###  Requisitos
+- C++17 ou superior
+- CMake (versão 3.13 ou superior)
+- Compilador compatível com POSIX (Linux recomendado)
+
+###  Passos
+1️⃣ Clone o repositório:
+```bash
+git clone <repositório>
+cd challenge_heron
+2️⃣ Configure e construa:
+
+bash
+Copiar
+Editar
+mkdir build
+cd build
+cmake ..
+make
+3️⃣ Execute:
+
+./CentralSystem
+ Estrutura do Projeto
+
+challenge_heron/
+├── CMakeLists.txt
+├── include/
+│   ├── Server.hpp
+│   └── LogWriter.hpp
+├── src/
+│   ├── CentralSystem.cpp
+│   ├── Server.cpp
+│   └── LogWriter.cpp
+├── SensorData.log (gerado na execução)
+├── .clang-format (configuração do estilo)
+└── README.md
+
+## Segurança e Concorrência
+Escrita no arquivo protegida por std::mutex para evitar corrupção por múltiplas threads.
+
+
+##Estilo de Código
+Configurado com .clang-format para seguir as melhores práticas de formatação e legibilidade.
+
+Extensibilidade
+Modularização com classes facilita a adição de novos recursos, como autenticação, criptografia ou novos formatos de armazenamento.
+
+Testes e Contribuições
+Testes unitários e Docker ainda podem ser adicionados para garantir robustez e portabilidade.
+
+Pull requests e contribuições são bem-vindas!
+
+Autor
+Desafio técnico desenvolvido por [Seu Nome].
+
+go
+Copiar
+Editar
+
+
+Para dar build no docker
+sudo docker build -t central-system .
+
+Para rodar a imagem:
+sudo docker run -p 4000:4000 central-system
+
+ver o container:
+ sudo docker container ls
+ 
+acessar o container:
+sudo docker exec -it <container ID> /bin/bash
+
+instalar docker
+
+
+pinheira - palhoça
+
+15 reais por exame
+
+era para ser 2
+
+2022 pra frente
+
+portal transparencia
+
+
+---------- Estrutura do video campanha do agasalho ----------
+
+intro com música 3 a 5 segundos focando em demonstrar o esforço e resultado da ação
+(música animada, suave de sucesso)
+
+Apresentação dos porta-vozes e explicação do que ta rolando (fala explicita deles, takes de carregando as roupas, chegando no local)
+
+Apresentação da ong ( o que faz, quem quiser ajudar, contato)
+
+take de separação das roupas e mais trabalho dos porta-vozes
+
+mensagens de cada um se fizer sentido
+
+(talvez: take consciencia: cuidando dos filhos enquanto ajuda a comunidade)
+
+take final 
